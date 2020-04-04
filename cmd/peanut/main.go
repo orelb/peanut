@@ -18,20 +18,9 @@ func main() {
 		log.Fatalf("Failed to parse config file: %s", err)
 	}
 
-	sources := make([]*peanut.Source, len(config.SourceDeclarations))
-	for i, sourceDeclaration := range config.SourceDeclarations {
-		mappings := make([]peanut.FileMapping, len(sourceDeclaration.FileMappings))
-		j := 0
-
-		for sourceMatcher, destPath := range sourceDeclaration.FileMappings {
-			mappings[j] = peanut.NewFileMapping(peanut.NewStandardFileSelector(sourceMatcher), destPath)
-			j++
-		}
-
-		fs := peanut.NewGenericGitSourceFS(sourceDeclaration.RepositoryURL)
-		source := peanut.NewSource(fs, mappings)
-
-		sources[i] = source
+	sources, err := peanut.CreateSources(config)
+	if err != nil {
+		log.Fatalf("Failed to create sources from configuration: %s", err)
 	}
 
 	cwd, err := os.Getwd()
@@ -46,4 +35,6 @@ func main() {
 			log.Fatalf("Failed to pull source: %s", err)
 		}
 	}
+
+	log.Println("Done :)")
 }

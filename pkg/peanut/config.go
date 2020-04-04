@@ -5,8 +5,8 @@ import "gopkg.in/yaml.v2"
 type SourceDeclaration struct {
 	Name          string
 	Type          string
-	RepositoryURL string `yaml:"repository_url"`
-	FileMappings  map[string]string `yaml:"files"`
+	RepositoryURL string   `yaml:"repository_url"`
+	FileMappings  []string `yaml:"files"`
 }
 
 type Config struct {
@@ -23,4 +23,29 @@ func ParseConfig(configContents []byte) (*Config, error) {
 	}
 
 	return &config, nil
+}
+
+func CreateSources(config *Config) ([]*Source, error) {
+	sources := make([]*Source, len(config.SourceDeclarations))
+
+	for i, sourceDeclaration := range config.SourceDeclarations {
+		mappings := make([]FileMapping, len(sourceDeclaration.FileMappings))
+
+		for j, fileMappingStr := range sourceDeclaration.FileMappings {
+			parsedMapping, err := ParseFileMapping(fileMappingStr)
+
+			if err != nil {
+				return nil, err
+			}
+
+			mappings[j] = parsedMapping
+		}
+
+		fs := NewGenericGitSourceFS(sourceDeclaration.RepositoryURL)
+		source := NewSource(fs, mappings)
+
+		sources[i] = source
+	}
+
+	return sources, nil
 }

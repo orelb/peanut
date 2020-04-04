@@ -7,22 +7,9 @@ import (
 	"path/filepath"
 )
 
-type FileMapping struct {
-	selector FileSelector
-	destPath string
-}
-
-type RunConfiguration struct {
-	Sources []Source
-}
-
 type Source struct {
 	fs       SourceFilesystem
 	mappings []FileMapping
-}
-
-func NewFileMapping(selector FileSelector, destPath string) FileMapping {
-	return FileMapping{selector, destPath}
 }
 
 func NewSource(fs SourceFilesystem, mappings []FileMapping) *Source {
@@ -43,15 +30,16 @@ func (source *Source) Pull(destDir string) error {
 	}
 
 	for _, mapping := range source.mappings {
-		files, err := mapping.selector.GetFiles(dir)
+		files, err := MatchFiles(dir, mapping.MatchPattern)
 		if err != nil {
 			return err
 		}
 
 		for _, file := range files {
-			fullDestPath := path.Join(destDir, mapping.destPath)
+			fullDestPath := path.Join(destDir, mapping.DestPath)
+			fsPath := filepath.FromSlash(fullDestPath)
 
-				err = file.CopyTo(filepath.FromSlash(fullDestPath))
+			err = file.CopyTo(fsPath)
 			if err != nil {
 				return err
 			}
