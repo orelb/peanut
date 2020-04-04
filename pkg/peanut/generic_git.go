@@ -1,27 +1,26 @@
 package peanut
 
 import (
-	"errors"
 	"fmt"
 	"os/exec"
 )
 
 type genericGitSourceFilesystem struct {
-	repositoryUrl string
+	repositoryURL string
 }
 
-func NewGenericGitSourceFS(repositoryUrl string) SourceFilesystem {
-	sourceFs := genericGitSourceFilesystem{repositoryUrl}
+// NewGenericGitSourceFS creates a generic-git source filesystem which interacts with Git using the shell command.
+func NewGenericGitSourceFS(repositoryURL string) SourceFilesystem {
+	sourceFs := genericGitSourceFilesystem{repositoryURL}
 	return &sourceFs
 }
 
 func (sourceFs *genericGitSourceFilesystem) FetchAll(destination string) error {
-	cloneCommand := exec.Command("git", "clone", sourceFs.repositoryUrl, destination)
+	cloneCommand := exec.Command("git", "clone", sourceFs.repositoryURL, destination)
 	err := cloneCommand.Run()
 
 	if err != nil {
-		errMessage := fmt.Sprintf("Error cloning repository: %s. %s", sourceFs.repositoryUrl, err)
-		return errors.New(errMessage)
+		return fmt.Errorf("error cloning repository \"%s\": %s", sourceFs.repositoryURL, err)
 	}
 
 	return nil

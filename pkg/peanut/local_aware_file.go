@@ -6,35 +6,36 @@ import (
 	"path/filepath"
 )
 
-// LocalAwareFile remembers the baseDir it was matched on by MatchFiles()
-type LocalAwareFile struct {
+// localAwareFile remembers the baseDir it was matched on by matchFiles()
+// It stores the paths in forward-slashes regardless to OS.
+type localAwareFile struct {
 	basePath     string
 	relativePath string
 }
 
-func newLocalAwareFile(basePath, relativePath string) LocalAwareFile {
-	return LocalAwareFile{filepath.ToSlash(basePath), filepath.ToSlash(relativePath)}
+func newLocalAwareFile(basePath, relativePath string) localAwareFile {
+	return localAwareFile{filepath.ToSlash(basePath), filepath.ToSlash(relativePath)}
 }
 
-func (laFile *LocalAwareFile) Path() string {
+func (laFile *localAwareFile) Path() string {
 	return path.Join(laFile.basePath, laFile.relativePath)
 }
 
-func (laFile *LocalAwareFile) FsPath() string {
+func (laFile *localAwareFile) FsPath() string {
 	return filepath.FromSlash(laFile.Path())
 }
 
-func (laFile *LocalAwareFile) BasePath() string {
+func (laFile *localAwareFile) BasePath() string {
 	return laFile.basePath
 }
 
-func (laFile *LocalAwareFile) RelativePath() string {
+func (laFile *localAwareFile) RelativePath() string {
 	return laFile.relativePath
 }
 
-func (laFile *LocalAwareFile) CopyTo(destDir string) error {
+func (laFile *localAwareFile) CopyTo(destDir string) error {
 	// TODO: add support for copying directories
-	fileInfo, err := AppFs.Stat(laFile.FsPath())
+	fileInfo, err := fs.Stat(laFile.FsPath())
 	if err != nil {
 		return err
 	}
@@ -42,7 +43,7 @@ func (laFile *LocalAwareFile) CopyTo(destDir string) error {
 	fullDestPath := filepath.Join(destDir, laFile.relativePath)
 	fullDestDir := filepath.Dir(fullDestPath)
 
-	err = AppFs.MkdirAll(fullDestDir, os.ModePerm)
+	err = fs.MkdirAll(fullDestDir, os.ModePerm)
 	if err != nil {
 		return err
 	}

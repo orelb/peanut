@@ -8,7 +8,12 @@ import (
 	"strings"
 )
 
-func MatchFiles(baseDir, matchPattern string) ([]LocalAwareFile, error) {
+// matchFile returns a list of localAwareFile which were found in the baseDir based on the matchPattern.
+// baseDir should be an os-specific path.
+// The matchPattern is a forward-slash path representing one of the following:
+// - glob pattern ("/usr/data/**/*.md")
+// - file or directory path (/"usr/data/products" or "/usr/data/products/spark.md")
+func matchFiles(baseDir, matchPattern string) ([]localAwareFile, error) {
 	// If a wildcard character is present, we'll do glob matching
 	if strings.Contains(matchPattern, "*") {
 		return globMatchFiles(baseDir, matchPattern)
@@ -17,7 +22,7 @@ func MatchFiles(baseDir, matchPattern string) ([]LocalAwareFile, error) {
 	fullMatchPath := filepath.Join(baseDir, filepath.FromSlash(matchPattern))
 
 	// Check if the file/directory exists
-	_, err := AppFs.Stat(fullMatchPath)
+	_, err := fs.Stat(fullMatchPath)
 	if err != nil {
 		return nil, err
 	}
@@ -28,14 +33,14 @@ func MatchFiles(baseDir, matchPattern string) ([]LocalAwareFile, error) {
 		return nil, err
 	}
 
-	return []LocalAwareFile{newLocalAwareFile(baseDir, relativePath)}, nil
+	return []localAwareFile{newLocalAwareFile(baseDir, relativePath)}, nil
 }
 
-func globMatchFiles(baseDir, matchPattern string) ([]LocalAwareFile, error) {
-	var matchedFiles []LocalAwareFile
+func globMatchFiles(baseDir, matchPattern string) ([]localAwareFile, error) {
+	var matchedFiles []localAwareFile
 	fullMatchPattern := filepath.Join(filepath.FromSlash(baseDir), filepath.FromSlash(matchPattern))
 
-	err := afero.Walk(AppFs, baseDir, func(path string, info os.FileInfo, err error) error {
+	err := afero.Walk(fs, baseDir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}

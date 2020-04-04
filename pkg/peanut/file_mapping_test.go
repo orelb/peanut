@@ -9,7 +9,7 @@ func TestParseFileMapping_Basic(t *testing.T) {
 	expectedMapping := FileMapping{"/docs", "/product1/docs"}
 	fileMappingStr := "/docs:/product1/docs"
 
-	parsedMapping, err := ParseFileMapping(fileMappingStr)
+	parsedMapping, err := parseFileMapping(fileMappingStr)
 	if err != nil {
 		t.Fatalf("Failed parsing file mapping: %s", err)
 	}
@@ -28,10 +28,10 @@ func TestParseFileMapping_ExpectError(t *testing.T) {
 
 	for _, invalidInput := range invalidInputs {
 		t.Run(invalidInput, func(t *testing.T) {
-			_, err := ParseFileMapping(invalidInput)
+			_, err := parseFileMapping(invalidInput)
 
 			if err == nil {
-				t.Fatalf("ParseFileMapping should return error")
+				t.Fatalf("parseFileMapping should return error")
 			}
 		})
 	}

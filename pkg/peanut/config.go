@@ -2,6 +2,7 @@ package peanut
 
 import "gopkg.in/yaml.v2"
 
+// SourceDeclaration defines a source to be used in Peanut
 type SourceDeclaration struct {
 	Name          string
 	Type          string
@@ -9,11 +10,12 @@ type SourceDeclaration struct {
 	FileMappings  []string `yaml:"files"`
 }
 
+// Config holds Peanut configuration
 type Config struct {
 	SourceDeclarations []SourceDeclaration `yaml:"sources"`
 }
 
-// Loads Peanut configuration from YAML string
+// ParseConfig loads Peanut configuration from a YAML string
 func ParseConfig(configContents []byte) (*Config, error) {
 	config := Config{}
 
@@ -25,6 +27,7 @@ func ParseConfig(configContents []byte) (*Config, error) {
 	return &config, nil
 }
 
+// CreateSources creates Peanut sources from Config.
 func CreateSources(config *Config) ([]*Source, error) {
 	sources := make([]*Source, len(config.SourceDeclarations))
 
@@ -32,7 +35,7 @@ func CreateSources(config *Config) ([]*Source, error) {
 		mappings := make([]FileMapping, len(sourceDeclaration.FileMappings))
 
 		for j, fileMappingStr := range sourceDeclaration.FileMappings {
-			parsedMapping, err := ParseFileMapping(fileMappingStr)
+			parsedMapping, err := parseFileMapping(fileMappingStr)
 
 			if err != nil {
 				return nil, err

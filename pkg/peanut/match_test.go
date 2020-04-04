@@ -15,13 +15,13 @@ func CreateFiles(filenames []string) {
 	fileContents := []byte("some text")
 
 	for _, filename := range filenames {
-		AppFs.MkdirAll(path.Dir(filename), os.ModePerm)
-		afero.WriteFile(AppFs, filepath.FromSlash(filename), fileContents, os.ModePerm)
+		fs.MkdirAll(path.Dir(filename), os.ModePerm)
+		afero.WriteFile(fs, filepath.FromSlash(filename), fileContents, os.ModePerm)
 	}
 }
 
 func InitTestFiles() {
-	AppFs = afero.NewMemMapFs()
+	fs = afero.NewMemMapFs()
 
 	CreateFiles([]string{
 		"/data/a.md",
@@ -37,8 +37,8 @@ func InitTestFiles() {
 	})
 }
 
-func CreateLocalAwareFileFromPaths(baseDir string, paths []string) []LocalAwareFile {
-	files := make([]LocalAwareFile, len(paths))
+func createLocalAwareFileFromPaths(baseDir string, paths []string) []localAwareFile {
+	files := make([]localAwareFile, len(paths))
 
 	for i, path := range paths {
 		files[i] = newLocalAwareFile(baseDir, path)
@@ -47,11 +47,11 @@ func CreateLocalAwareFileFromPaths(baseDir string, paths []string) []LocalAwareF
 	return files
 }
 
-var localAwareFileComparer = cmp.Comparer(func(x, y LocalAwareFile) bool {
+var localAwareFileComparer = cmp.Comparer(func(x, y localAwareFile) bool {
 	return x.BasePath() == y.BasePath() && x.RelativePath() == y.RelativePath()
 })
 
-var sortLocalAwareFiles = cmpopts.SortSlices(func(x, y LocalAwareFile) bool { return x.Path() < y.Path() })
+var sortLocalAwareFiles = cmpopts.SortSlices(func(x, y localAwareFile) bool { return x.Path() < y.Path() })
 
 type MatchFileTest struct {
 	matchPattern  string
@@ -87,8 +87,8 @@ func TestMatchFiles(t *testing.T) {
 	for _, test := range matchFilesTests {
 		testName := fmt.Sprintf("('%s','%s')", test.matchPattern, test.baseDir)
 		t.Run(testName, func(t *testing.T) {
-			expectedFiles := CreateLocalAwareFileFromPaths(test.baseDir, test.expectedPaths)
-			matchedFiles, err := MatchFiles(test.baseDir, test.matchPattern)
+			expectedFiles := createLocalAwareFileFromPaths(test.baseDir, test.expectedPaths)
+			matchedFiles, err := matchFiles(test.baseDir, test.matchPattern)
 			if err != nil {
 				t.Fatalf("Failed to get files: %s", err)
 			}
