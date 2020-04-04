@@ -34,7 +34,6 @@ func (laFile *localAwareFile) RelativePath() string {
 }
 
 func (laFile *localAwareFile) CopyTo(destDir string) error {
-	// TODO: add support for copying directories
 	fileInfo, err := fs.Stat(laFile.FsPath())
 	if err != nil {
 		return err
@@ -48,11 +47,14 @@ func (laFile *localAwareFile) CopyTo(destDir string) error {
 		return err
 	}
 
-	if !fileInfo.IsDir() {
+	if fileInfo.IsDir() {
+		err = copyDirectory(laFile.FsPath(), fullDestPath)
+	} else {
 		err = copyFile(laFile.FsPath(), fullDestPath)
-		if err != nil {
-			return err
-		}
+	}
+
+	if err != nil {
+		return err
 	}
 
 	return nil

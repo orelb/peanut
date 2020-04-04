@@ -1,43 +1,44 @@
 package peanut
 
 import (
+	"github.com/spf13/afero"
 	"io"
+	"os"
+	"path/filepath"
 )
 
-//func CopyByMapping(sourceDir string, destinationDir string, mapping MappingRule) error {
-//	sourcePath := filepath.Join(sourceDir, mapping.source)
-//	destPath := filepath.Join(destinationDir, mapping.destination)
-//
-//	sourceInfo, err := fs.Stat(sourcePath)
-//	if os.IsNotExist(err) {
-//		errorMessage := fmt.Sprintf("File %s not found", sourcePath)
-//		return errors.New(errorMessage)
-//	}
-//
-//	if sourceInfo.Mode().IsDir() {
-//		err = copyDirectory(sourcePath, destPath)
-//		if err != nil {
-//			return err
-//		}
-//	} else if sourceInfo.Mode().IsRegular() {
-//		// if the source mapping is a file, copy to the destination path
-//
-//		destStat, err := fs.Stat(destPath)
-//
-//		// If the destination is a directory, set the destination path for our original filename inside the destination directory.
-//		if err == nil && destStat.IsDir() {
-//			destPath = filepath.Join(destPath, sourceInfo.Name())
-//		}
-//
-//		err = copyFile(sourcePath, destPath)
-//
-//		if err != nil {
-//			return err
-//		}
-//	}
-//
-//	return nil
-//}
+func copyDirectory(sourceDir string, destinationDir string) error {
+	err := afero.Walk(fs, sourceDir, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		relativePath, err := filepath.Rel(sourceDir, path)
+		if err != nil {
+			return err
+		}
+
+		targetPath := filepath.Join(destinationDir, relativePath)
+
+		if info.IsDir() {
+			err = fs.MkdirAll(targetPath, os.ModePerm)
+
+			if err != nil {
+				return err
+			}
+		} else {
+			err = copyFile(path, targetPath)
+
+			if err != nil {
+				return err
+			}
+		}
+
+		return nil
+	})
+
+	return err
+}
 
 func copyFile(sourcePath string, destinationPath string) error {
 	destination, err := fs.Create(destinationPath)
