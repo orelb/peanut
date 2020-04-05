@@ -41,7 +41,7 @@ func (source *Source) Pull(destDir string) error {
 			fullDestPath := path.Join(destDir, mapping.DestPath)
 			fsPath := filepath.FromSlash(fullDestPath)
 
-			err = file.CopyTo(fsPath)
+			err = file.CopyToDirectory(fsPath)
 			if err != nil {
 				return err
 			}

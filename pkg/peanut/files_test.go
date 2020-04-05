@@ -1,6 +1,7 @@
 package peanut
 
 import (
+	"bytes"
 	"fmt"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
@@ -48,10 +49,10 @@ func createLocalAwareFileFromPaths(baseDir string, paths []string) []localAwareF
 }
 
 var localAwareFileComparer = cmp.Comparer(func(x, y localAwareFile) bool {
-	return x.BasePath() == y.BasePath() && x.RelativePath() == y.RelativePath()
+	return x.path == y.path && x.basePath == y.basePath
 })
 
-var sortLocalAwareFiles = cmpopts.SortSlices(func(x, y localAwareFile) bool { return x.Path() < y.Path() })
+var sortLocalAwareFiles = cmpopts.SortSlices(func(x, y localAwareFile) bool { return x.path < y.path })
 
 type MatchFileTest struct {
 	matchPattern  string
@@ -97,5 +98,28 @@ func TestMatchFiles(t *testing.T) {
 				t.Fatalf("Matched paths mismatch. (-want,+got):\n%s", diff)
 			}
 		})
+	}
+}
+
+func TestCopyFile(t *testing.T) {
+	fs = afero.NewMemMapFs()
+	copiedFilePath := "/adsad"
+	expectedData := []byte("This is some test data")
+
+	_ = afero.WriteFile(fs, "/data", expectedData, os.ModePerm)
+
+	err := copyFile("/data", copiedFilePath)
+	if err != nil {
+		t.Errorf("copyFile() failed: %s", err)
+	}
+
+	_, err = fs.Stat(copiedFilePath)
+	if err != nil {
+		t.Errorf("Failed to stat %s: %s", copiedFilePath, err)
+	}
+
+	copiedFileData, err := afero.ReadFile(fs, copiedFilePath)
+	if bytes.Compare(copiedFileData, expectedData) != 0 {
+		t.Errorf("Copied file data and original data is different")
 	}
 }
