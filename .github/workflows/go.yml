@@ -30,8 +30,8 @@ jobs:
             dep ensure
         fi
 
-    - name: Build
-      run: go build -v .
+    - name: Build "peanut" command
+      run: go build -v cmd/peanut/main.go
 
     - name: Test Peanut package
       run: go test ./pkg/peanut
