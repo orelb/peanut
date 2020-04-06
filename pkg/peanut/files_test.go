@@ -38,48 +38,53 @@ func InitTestFiles() {
 	})
 }
 
-func createLocalAwareFileFromPaths(baseDir string, paths []string) []localAwareFile {
-	files := make([]localAwareFile, len(paths))
-
-	for i, path := range paths {
-		files[i] = newLocalAwareFile(baseDir, path)
-	}
-
-	return files
-}
-
-var localAwareFileComparer = cmp.Comparer(func(x, y localAwareFile) bool {
-	return x.path == y.path && x.basePath == y.basePath
+var localAwareFileComparer = cmp.Comparer(func(x, y matchedFile) bool {
+	xRelativePath, _ := x.RelativePath()
+	yRelativePath, _ := y.RelativePath()
+	return xRelativePath == yRelativePath && x.path == y.path && x.basePath == y.basePath && x.matchedByGlob == y.matchedByGlob
 })
 
-var sortLocalAwareFiles = cmpopts.SortSlices(func(x, y localAwareFile) bool { return x.path < y.path })
+var sortLocalAwareFiles = cmpopts.SortSlices(func(x, y matchedFile) bool { return x.path < y.path })
 
 type MatchFileTest struct {
 	matchPattern  string
 	baseDir       string
-	expectedPaths []string
+	expectedFiles []matchedFile
 }
 
 var matchFilesTests = []MatchFileTest{
 
 	// Glob tests
 	{"/data/recipes/**/*.png", "/",
-		[]string{
-			"data/recipes/italian/pasta-tasty.png",
-			"data/recipes/italian/pizza1.png",
-			"data/recipes/italian/pizza2.png",
-			"data/recipes/israeli/falafel-with-tahini.png",
+		[]matchedFile{
+			matchedFile{"/data/recipes/italian/pasta-tasty.png", "/data/recipes", true},
+			matchedFile{"/data/recipes/italian/pizza1.png", "/data/recipes", true},
+			matchedFile{"/data/recipes/italian/pizza2.png", "/data/recipes", true},
+			matchedFile{"/data/recipes/israeli/falafel-with-tahini.png", "/data/recipes", true},
 		},
 	},
-	{"/*", "/data", []string{"a.md", "b.md", "recipes"}},
-	{"/**/*.md", "/data/recipes", []string{
-		"readme.md", "israeli/falafel.md", "italian/pizza.md", "italian/pasta.md",
+	{"/*", "/data", []matchedFile{
+		matchedFile{"/data/a.md", "/data", true},
+		matchedFile{"/data/b.md", "/data", true},
+		matchedFile{"/data/recipes", "/data", true},
+	}},
+	{"/**/*.md", "/data/recipes", []matchedFile{
+		matchedFile{"/data/recipes/readme.md", "/data/recipes", true},
+		matchedFile{"/data/recipes/israeli/falafel.md", "/data/recipes", true},
+		matchedFile{"/data/recipes/italian/pizza.md", "/data/recipes", true},
+		matchedFile{"/data/recipes/italian/pasta.md", "/data/recipes", true},
 	}},
 
-	// Files/Directories tests
-	{"italian", "/data/recipes", []string{"italian"}},
-	{"/data/a.md", "/", []string{"data/a.md"}},
-	{"recipes", "/data", []string{"recipes"}},
+	//// Files/Directories tests
+	{"italian", "/data/recipes", []matchedFile{
+		matchedFile{"/data/recipes/italian", "/data/recipes", false},
+	}},
+	{"/data/a.md", "/", []matchedFile{
+		matchedFile{"/data/a.md", "/data", false},
+	}},
+	{"recipes", "/data", []matchedFile{
+		matchedFile{"/data/recipes", "/data", false},
+	}},
 }
 
 func TestMatchFiles(t *testing.T) {
@@ -88,13 +93,12 @@ func TestMatchFiles(t *testing.T) {
 	for _, test := range matchFilesTests {
 		testName := fmt.Sprintf("('%s','%s')", test.matchPattern, test.baseDir)
 		t.Run(testName, func(t *testing.T) {
-			expectedFiles := createLocalAwareFileFromPaths(test.baseDir, test.expectedPaths)
 			matchedFiles, err := matchFiles(test.baseDir, test.matchPattern)
 			if err != nil {
 				t.Fatalf("Failed to get files: %s", err)
 			}
 
-			if diff := cmp.Diff(expectedFiles, matchedFiles, localAwareFileComparer, sortLocalAwareFiles); diff != "" {
+			if diff := cmp.Diff(test.expectedFiles, matchedFiles, localAwareFileComparer, sortLocalAwareFiles); diff != "" {
 				t.Fatalf("Matched paths mismatch. (-want,+got):\n%s", diff)
 			}
 		})

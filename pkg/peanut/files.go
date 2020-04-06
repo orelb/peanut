@@ -9,21 +9,30 @@ import (
 	"strings"
 )
 
-// localAwareFile remembers the baseDir it was matched on by matchFiles()
-type localAwareFile struct {
+// matchedFile remembers the baseDir it was matched on by matchFiles()
+type matchedFile struct {
 	path     string
 	basePath string
+
+	// whether the file was matched by a glob match pattern
+	matchedByGlob bool
 }
 
-func newLocalAwareFile(path, basePath string) localAwareFile {
-	return localAwareFile{path, basePath}
-}
-
-func (laFile *localAwareFile) RelativePath() (string, error) {
+func (laFile *matchedFile) RelativePath() (string, error) {
 	return filepath.Rel(laFile.basePath, laFile.path)
 }
 
-func (laFile *localAwareFile) CopyToDirectory(dest string) error {
+func (laFile *matchedFile) IsDir() (bool, error) {
+	fileInfo, err := fs.Stat(laFile.path)
+	if err != nil {
+		return false, err
+	}
+	return fileInfo.IsDir(), err
+}
+
+// CopyToDirectory copies the matchedFile to the destination directory,
+// keeping the original directory structure based on the relative path.
+func (laFile *matchedFile) CopyToDirectory(dest string) error {
 	fileInfo, err := fs.Stat(laFile.path)
 	if err != nil {
 		return err
@@ -49,39 +58,21 @@ func (laFile *localAwareFile) CopyToDirectory(dest string) error {
 	return copyFile(laFile.path, fullDestPath)
 }
 
-//func (laFile *localAwareFile) CopyTo(destPath string) error {
-//	fileInfo, err := fs.Stat(laFile.FsPath())
-//	if err != nil {
-//		return err
-//	}
-//
-//	fullDestPath := filepath.Join(destPath, laFile.relativePath)
-//	fullDestDir := filepath.Dir(fullDestPath)
-//
-//	err = fs.MkdirAll(fullDestDir, os.ModePerm)
-//	if err != nil {
-//		return err
-//	}
-//
-//	if fileInfo.IsDir() {
-//		err = copyDirectory(laFile.FsPath(), fullDestPath)
-//	} else {
-//		err = copyFile(laFile.FsPath(), fullDestPath)
-//	}
-//
-//	if err != nil {
-//		return err
-//	}
-//
-//	return nil
-//}
+func (laFile *matchedFile) CopyTo(dest string) error {
+	err := os.MkdirAll(filepath.Dir(dest), os.ModePerm)
+	if err != nil {
+		return err
+	}
 
-// matchFile returns a list of localAwareFile which were found in the baseDir based on the matchPattern.
+	return copyFile(laFile.path, dest)
+}
+
+// matchFile returns a list of matchedFile which were found in the baseDir based on the matchPattern.
 // baseDir should be an os-specific path.
 // The matchPattern is a forward-slash path representing one of the following:
 // - glob pattern ("/usr/data/**/*.md")
-// - file or directory path (/"usr/data/products" or "/usr/data/products/spark.md")
-func matchFiles(baseDir, matchPattern string) ([]localAwareFile, error) {
+// - file or directory path (/"usr/data/products" or "/usr/data/products/spark.mds")
+func matchFiles(baseDir, matchPattern string) ([]matchedFile, error) {
 	// If a wildcard character is present, we'll do glob matching
 	if strings.Contains(matchPattern, "*") {
 		return globMatchFiles(baseDir, matchPattern)
@@ -90,21 +81,19 @@ func matchFiles(baseDir, matchPattern string) ([]localAwareFile, error) {
 	fullMatchPath := filepath.Join(baseDir, filepath.FromSlash(matchPattern))
 
 	// Check if the file/directory exists
-	fileInfo, err := fs.Stat(fullMatchPath)
+	_, err := fs.Stat(fullMatchPath)
 	if err != nil {
 		return nil, err
 	}
 
 	// If a single file matches, the basePath should be the directory of the file.
-	if !fileInfo.IsDir() {
-		return []localAwareFile{newLocalAwareFile(fullMatchPath, filepath.Dir(fullMatchPath))}, nil
-	}
+	file := matchedFile{fullMatchPath, filepath.Dir(fullMatchPath), false}
 
-	return []localAwareFile{}, nil
+	return []matchedFile{file}, nil
 }
 
-func globMatchFiles(baseDir, matchPattern string) ([]localAwareFile, error) {
-	var matchedFiles []localAwareFile
+func globMatchFiles(baseDir, matchPattern string) ([]matchedFile, error) {
+	var matchedFiles []matchedFile
 
 	globPath := filepath.Join(filepath.FromSlash(baseDir), filepath.FromSlash(matchPattern))
 	globBase := getGlobBase(globPath)
@@ -120,7 +109,7 @@ func globMatchFiles(baseDir, matchPattern string) ([]localAwareFile, error) {
 		}
 
 		if match {
-			file := newLocalAwareFile(path, globBase)
+			file := matchedFile{path, globBase, true}
 			matchedFiles = append(matchedFiles, file)
 		}
 
