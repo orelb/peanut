@@ -30,9 +30,9 @@ In addition to that, you can selectively choose which files to include from the 
 Create a `peanut.yml` file in your site's root.
 
  ### File mapping
- The process of choosing which files to include from a source is called file mapping and it takes place in the `files` array in a source.
+ The process of choosing which files to include from a source is called *file mapping* and it takes place in the `files` array of a source.
  
- Each entry in the `files` list is a mapping. The left-hand size describes the match pattern in the source; and the left-hand side describes the local destination path for the matched files.
+ Each entry in the `files` list is a mapping which consists of two paths separated by a colon. The left-hand side describes the match pattern in the source; and the right-hand side describes the local destination path for the matched files.
 
  ```yaml
 sources:
