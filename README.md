@@ -26,6 +26,9 @@ Running `peanut` in site's root should pull all the files and organize them in t
 The configuration for Peanut is quite simple. It allows you to describe one or more "sources" to fetch documents from.
 In addition to that, you can selectively choose which files to include from the source and where to place them locally.
 
+### Placement
+Create a `peanut.yml` file in your site's root.
+
  ### File mapping
  The process of choosing which files to include from a source is called file mapping and it takes place in the `files` array in a source.
  
