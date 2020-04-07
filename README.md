@@ -1,5 +1,5 @@
 # Peanut
-![](https://github.com/orelb/peanut/workflows/Build /badge.svg)
+![](https://github.com/orelb/peanut/workflows/Build/badge.svg)
 
 **Peanut** helps you compose your static site from multiple sources with a static-site generator of your choice.
 
