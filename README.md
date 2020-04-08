@@ -1,6 +1,6 @@
 # Peanut
 <p align="center">
-  <img width="130" src="artwork/logo.png?raw=true"/>
+  <img width="230" src="artwork/logo.png?raw=true"/>
 </p>
 
 ![](https://github.com/orelb/peanut/workflows/Build/badge.svg)
