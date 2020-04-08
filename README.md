@@ -1,10 +1,15 @@
 # Peanut
-![](https://github.com/orelb/peanut/workflows/Build/badge.svg)
+<p align="center">
+  <img width="130" src="artwork/logo.png?raw=true"/>
+</p>
 
-**Peanut** helps you compose your static site from multiple sources with a static-site generator of your choice.
+![](https://github.com/orelb/peanut/workflows/Build/badge.svg)
+    
+Peanut helps you compose your static site from multiple sources with a static-site generator of your choice.
 
 It is meant to be used as a complementary tool to a static-site generator such as Jekyll or Hugo.
 You use peanut to fetch documents from configured sources and then run your site build command. 
+
 
 ## Getting started
 After installing Peanut, create a file called `peanut.yml` in your site's root:
