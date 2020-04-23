@@ -9,17 +9,23 @@ import (
 
 // Source describes how to fetch remote files and order them locally.
 type Source struct {
+	name     string
 	fs       SourceFilesystem
 	mappings []FileMapping
 }
 
 // NewSource creates a new source
-func NewSource(fs SourceFilesystem, mappings []FileMapping) *Source {
-	return &Source{fs, mappings}
+func NewSource(name string, fs SourceFilesystem, mappings []FileMapping) *Source {
+	return &Source{name, fs, mappings}
 }
 
-// Pull copies the files from the source to the destination directories
-func (source *Source) Pull(destDir string) error {
+// Name returns the source name.
+func (source *Source) Name() string {
+	return source.name
+}
+
+// Fetch copies the files from the source to the destination directories
+func (source *Source) Fetch(destDir string) error {
 	// Create a temporary directory, we first fetch the source's files to there.
 	dir, err := ioutil.TempDir("", "peanut")
 	if err != nil {
