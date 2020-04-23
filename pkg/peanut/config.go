@@ -45,7 +45,7 @@ func CreateSources(config *Config) ([]*Source, error) {
 		}
 
 		fs := NewGenericGitSourceFS(sourceDeclaration.RepositoryURL)
-		source := NewSource(fs, mappings)
+		source := NewSource(sourceDeclaration.Name, fs, mappings)
 
 		sources[i] = source
 	}

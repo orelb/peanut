@@ -1,10 +1,10 @@
 package main
 
 import (
+	"fmt"
 	"github.com/orelb/peanut/pkg/peanut"
 	"github.com/urfave/cli/v2"
 	"io/ioutil"
-	"log"
 	"os"
 )
 
@@ -24,45 +24,49 @@ func main() {
 			},
 		},
 		Action: func(context *cli.Context) error {
-			pullAllSources(configFile)
-			return nil
+			return pullAllSources(configFile)
 		},
 	}
 
 	err := app.Run(os.Args)
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println(err)
+		os.Exit(1)
 	}
 }
 
-func pullAllSources(configFile string) {
+func pullAllSources(configFile string) error {
 	configContents, err := ioutil.ReadFile(configFile)
 	if err != nil {
-		log.Fatalf("Failed to load config file: %s", err)
+		return fmt.Errorf("failed to load config file.\n%s", err)
 	}
 
 	config, err := peanut.ParseConfig(configContents)
 	if err != nil {
-		log.Fatalf("Failed to parse config file: %s", err)
+		return fmt.Errorf("failed to parse config file.\n%s", err)
 	}
 
 	sources, err := peanut.CreateSources(config)
 	if err != nil {
-		log.Fatalf("Failed to create sources from configuration: %s", err)
+		return fmt.Errorf("failed to initialize sources from configuration.\n%s", err)
 	}
+
+	fmt.Printf("Created %d sources.\n", len(sources))
 
 	cwd, err := os.Getwd()
 	if err != nil {
-		log.Fatalf("Failed to fetch current working directory: %s", err)
+		return fmt.Errorf("failed to fetch current working directory.\n%s", err)
 	}
 
 	for _, source := range sources {
-		err := source.Pull(cwd)
+		err := source.Fetch(cwd)
+		fmt.Printf("Fetching source \"%s\"\n", source.Name())
 
 		if err != nil {
-			log.Fatalf("Failed to pull source: %s", err)
+			return fmt.Errorf("failed to pull source %s.\n%s", source.Name(), err)
 		}
 	}
 
-	log.Println("Done :)")
+	fmt.Println("Done.")
+	return nil
 }
