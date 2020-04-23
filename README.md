@@ -3,7 +3,7 @@
 
 **Peanut** helps you compose your static site from multiple sources with a static-site generator of your choice.
 
-It is meant to be used as a complementary tool to a static-site generator such as Jekyll or Hugo.
+It is meant to be used as a complementary tool to a static-site generator such as [Jekyll](https://github.com/jekyll/jekyll) or [Hugo](https://github.com/gohugoio/hugo).
 You use peanut to fetch documents from configured sources and then run your site build command. 
 
 ## Getting started
@@ -26,17 +26,17 @@ Running `peanut` in site's root should pull all the files and organize them in t
 The configuration for Peanut is quite simple. It allows you to describe one or more "sources" to fetch documents from.
 In addition to that, you can selectively choose which files to include from the source and where to place them locally.
 
-### Placement
-Create a `peanut.yml` file in your site's root.
+The default config filename is `peanut.yml`. It should be placed at site root.
+You may use the `-c` flag to specify custom config path.
 
- ### File mapping
- The process of choosing which files to include from a source is called *file mapping* and it takes place in the `files` array of a source.
- 
- Each entry in the `files` list is a mapping which consists of two paths separated by a colon. The left-hand side describes the match pattern in the source; and the right-hand side describes the local destination path for the matched files.
+### File mapping
+The process of choosing which files to include from a source is called *file mapping* and it takes place in the `files` array of a source.
+
+Each entry in the `files` list is a mapping which consists of two paths separated by a colon. The left-hand side describes the match pattern in the source; and the right-hand side describes the local destination path for the matched files.
 
  ```yaml
 sources:
-    - name: Cool Product
+    - name: Cool-Product's Documentation
       # ...
       files:
         # Glob matching, match multiple files at once
