@@ -19,6 +19,7 @@ func NewSource(name string, fs SourceFilesystem, mappings []FileMapping) *Source
 	return &Source{name, fs, mappings}
 }
 
+// Name returns the source name.
 func (source *Source) Name() string {
 	return source.name
 }
