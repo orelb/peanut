@@ -23,7 +23,7 @@ func (sourceFs *genericGitSourceFilesystem) FetchAll(destination string) error {
 		return fmt.Errorf("error cloning repository \"%s\": %s", sourceFs.repositoryURL, err)
 	}
 
-	checkoutCommand := exec.Command("git", "checkout", sourceFs.revision)
+	checkoutCommand := exec.Command("git", "-C", destination, "checkout", sourceFs.revision)
 	err = checkoutCommand.Run()
 	if err != nil {
 		return fmt.Errorf("failed to checkout revision \"%s\": %s", sourceFs.revision, err)
