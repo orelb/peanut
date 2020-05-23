@@ -1,13 +1,25 @@
 package peanut
 
-import "gopkg.in/yaml.v2"
+import (
+	"gopkg.in/yaml.v2"
+)
 
 // SourceDeclaration defines a source to be used in Peanut
 type SourceDeclaration struct {
-	Name          string
-	Type          string
-	RepositoryURL string   `yaml:"repository_url"`
-	FileMappings  []string `yaml:"files"`
+	Name         string
+	Type         string
+	URL          string
+	Revision     *string
+	FileMappings []string `yaml:"files"`
+}
+
+// GetRevision returns the source declaration's revision if set or "master" if not.
+func (sd SourceDeclaration) GetRevision() string {
+	if sd.Revision == nil {
+		return "master"
+	}
+
+	return *sd.Revision
 }
 
 // Config holds Peanut configuration
@@ -44,7 +56,7 @@ func CreateSources(config *Config) ([]*Source, error) {
 			mappings[j] = parsedMapping
 		}
 
-		fs := NewGenericGitSourceFS(sourceDeclaration.RepositoryURL)
+		fs := NewGenericGitSourceFS(sourceDeclaration.URL, sourceDeclaration.GetRevision())
 		source := NewSource(sourceDeclaration.Name, fs, mappings)
 
 		sources[i] = source

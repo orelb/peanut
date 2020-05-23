@@ -14,7 +14,8 @@ version: 1
 sources:
   - name: Webhook Documenation
     type: github
-    repository_url: https://github.com/adnanh/webhook.git
+    url: https://github.com/adnanh/webhook.git
+    revision: master
     files:
       # This allows you to replace the path of a file or directory in the destination
       - /docs/**/*.md:/tools/webhook
